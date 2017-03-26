@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Méteo</title>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style_small.css')}}"
+     media="screen and (max-width: 1280px)"> 
+</head>
+<body>
+    <ul id="nav">
+        <li id="titre_menu"><h3 style="text-align: center">Menu</h3></li>
+        <li id="item"><h3><a href={{url_for('home')}}>Accueil</a></h3></li>
+        <li id="item"><h3><a href={{url_for('stats')}}>Statistiques annuels</a></h3></li>
+        <li id="item"><h3><a href={{url_for('archives', freq=10)}}>Archives</a></h3></li>
+        <li id="about_menu"><h3><a href={{url_for('about')}}>A propos</a></h3></li>
+    </ul>
+    <div id="titre">{% block titre %}{% endblock %}</div>
+    {% block body %}{% endblock %}
+</body>
+</html>
+

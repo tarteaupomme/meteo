@@ -1,0 +1,8 @@
+{% extends 'template.html' %}
+{% block titre %}<h1 id="titre">A propos</h1>{% endblock %}
+{% block body %}
+    <div id="about">
+        <p>Cette station météo est en fonctionnement depuis le 11 janvier 2017.<br/>
+        Actuellement, {{ nb_mesure }} mesures on été faites soit toutes les dix minutes.</p>
+    </div>
+{% endblock %}

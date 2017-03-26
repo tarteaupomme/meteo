@@ -1,0 +1,8 @@
+{% extends 'template.html' %}
+{% block titre %}<h1 id="titre">Accueil</h1>{% endblock %}
+{% block body %}
+    <h2 id='subtitle'>Mesures des dernières 48H</h2>
+    <div id='graphs'>
+        <embed type="image/svg+xml" src={{plot|safe}} style='max-width:2000px;margin-left: auto;margin-right: auto;'/>
+    </div>
+{% endblock %}

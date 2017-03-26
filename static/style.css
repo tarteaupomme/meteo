@@ -1,0 +1,131 @@
+body
+{
+    background: #f9f9f9;
+    margin: 0;
+    padding: 0;
+}
+
+#graphs
+{
+    display: flex;
+    flex-wrap: wrap-reverse;
+    justify-content: center;
+}
+
+#graph_data
+{
+    display: block;
+    width: 50%;
+    margin: auto;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#subtitle_data
+{
+    text-align: center;
+}
+
+#data
+{
+    text-align: center;
+}
+
+#subtitle
+{
+    text-align: center;
+}
+
+h1
+{
+    font-size: 40px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+h2
+{
+    font-size: 30px;
+}
+
+h3
+{
+    font-size: 20px;
+}
+
+p
+{
+    font-size: 14px;
+}
+
+#nav 
+{
+    display: block;
+    width: 10%;
+    height: 73px;
+    margin: 0;
+    padding: 0;
+    position: fixed; 
+    overflow: auto;
+    top: 0px;
+    background-color: yellow;
+    overflow: hidden;
+}
+
+#nav:hover
+{
+    width: 10%;
+    height: 100%;
+    background-image: none;
+    background-color: yellow;
+}
+
+#nav a
+{
+    display: block;
+    color: #000;
+    padding: 8px 16px;
+    text-decoration: none;
+    text-align: center;
+}
+    
+#nav a:hover {
+    background-color: orange;
+    color: black;
+}
+
+#about
+{
+    text-align: center;
+}
+
+#item
+{
+    margin: 0;
+}
+
+#titre_menu
+{
+    background-color: red;
+    padding: 5px;
+}
+
+#titre
+{
+    font-size: 50px;
+    font-weight: bold;
+    color: green;
+    text-align: center;
+    margin: 30px;
+}
+
+#about_menu
+{
+    text-align: center;
+    margin: auto;
+    width: 100%;
+}
+
+    
+    
+
