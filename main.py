@@ -230,7 +230,8 @@ def home():
                        + hour * 100 + minute) >= {}
                       """
 					  .format(today.year * 100000000 + today.month * 1000000 +
-					          today.day * 10000 + today.hour * 100 + today.minute),
+					          today.day * 10000 + today.hour * 100 + 
+                              today.minute),
                        1, platform)
 
     extremum = extrem()
