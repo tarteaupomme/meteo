@@ -1,6 +1,6 @@
 {% extends 'template.html' %}
 {% block titre %}<h1 id="titre">Archives</h1>{% endblock %}
-{% block body %}
+{% block body %}    
     <h2 id='subtitle'>Mesures du {{day}}/{{month}}/{{year}} à {{hour}}h</h2>
     <div id='graphs'>
         <embed type="image/svg+xml" src={{plot|safe}} style='max-width:2000px;margin-left: auto;margin-right: auto;'/>

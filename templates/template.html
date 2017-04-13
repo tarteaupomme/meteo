@@ -1,21 +1,37 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Méteo</title>
-    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}">
-    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style_small.css')}}"
-     media="screen and (max-width: 1280px)"> 
-</head>
-<body>
-    <ul id="nav">
-        <li id="titre_menu"><h3 style="text-align: center">Menu</h3></li>
-        <li id="item"><h3><a href={{url_for('home')}}>Accueil</a></h3></li>
-        <li id="item"><h3><a href={{url_for('stats')}}>Statistiques annuels</a></h3></li>
-        <li id="item"><h3><a href={{url_for('archives', freq=10)}}>Archives</a></h3></li>
-        <li id="about_menu"><h3><a href={{url_for('about')}}>A propos</a></h3></li>
-    </ul>
-    <div id="titre">{% block titre %}{% endblock %}</div>
-    {% block body %}{% endblock %}
-</body>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href={{ url_for('static', filename="favicon.jpg") }}>
+
+    <title>Météo</title>
+
+    <link rel="stylesheet" href={{ url_for('static', filename="bootstrap.min.css") }}>
+    <link href={{ url_for('static', filename="style2.css") }} rel="stylesheet">
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="navbar navbar-inverse">
+        <div class="navbar-header"><span class="navbar-brand">Météo</span></div>
+        <ul class="nav navbar-nav">
+          <li class={{ "active" if here=="home" else ""}}><a href={{ url_for('home') }}>Accueil</a></li>
+          <li class={{ "active" if here=="stats" else ""}}><a href={{ url_for('stats') }}>Statistiques annuels</a></li>
+          <li class={{ "active" if here=="archives" else ""}}><a href={{ url_for('archives', freq=10) }}>Archives</a></li>
+          <li class={{ "active" if here=="photo" else ""}}><a href={{ url_for('photo') }}>Photos</a></li>
+          <li class={{ "active" if here=="about" else ""}}><a href={{ url_for('about') }}>A propos</a></li>
+        </ul>
+      </div>
+      {% block body %}{% endblock %}
+    </div>
+    <script src={{ url_for('static', filename='jquery-3.2.0.js') }}></script>
+    <script src={{ url_for('static', filename="bootstrap.min.js") }}></script>
+  </body>
 </html>
 

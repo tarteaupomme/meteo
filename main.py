@@ -1,8 +1,9 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request, send_file
 import pygal
 import datetime
 import sqlite3
 import re
+import os
 
 db_path = 'meteo.db'
 
@@ -25,8 +26,11 @@ def gen_from_db(restriction=',', freq=1, platform=None):
     plot = pygal.DateTimeLine(
             x_label_rotation=35, truncate_label=-1,
             x_value_formatter=lambda dt: dt.strftime('%y/%m/%d %H:%M'),
-            human_readable=human_readable, show_legend=legend,
-            explicit_size=True, show_x_guides=True)
+            human_readable=human_readable,
+            show_legend=True,
+            explicit_size=True,
+            show_x_guides=True,
+            legend_at_bottom=True)
 
     data = []
 
@@ -42,11 +46,11 @@ def gen_from_db(restriction=',', freq=1, platform=None):
     plot.secondary_range = [965, 1045]
     plot.range = [-10, 30]
     if platform in ('iphone', 'android'):
-        plot.width = 950
-        plot.height = 1200
+        plot.width = 450
+        plot.height = 700
     else:
-        plot.width = 1500
-        plot.height = 750
+        plot.width = 1150
+        plot.height = 800
 
     plot.x_labels = [i[0] for i in data if i[0].hour == 0 and 
                      i[0].minute < 10]
@@ -239,7 +243,7 @@ def home():
     return render_template('home.html', plot=plot,
                            max_temp=extremum[0],
                            min_temp=extremum[1], max_pressure=extremum[2],
-                           min_pressure=extremum[3])
+                           min_pressure=extremum[3], here="home")
 
 
 @app.route('/stats')
@@ -252,7 +256,7 @@ def stats():
     return render_template('stats.html', temp=temp, pres=pres,
                            max_temp=extremum[0], min_temp=extremum[1],
                            max_pressure=extremum[2], min_pressure=extremum[3],
-                           month_stats=month_stats)
+                           month_stats=month_stats, here="stats")
 
 @app.route('/simple_data')
 def simple_data():
@@ -276,7 +280,7 @@ def about():
 
     nb_mesure = cur.fetchone()[0]
 
-    return render_template('about.html', nb_mesure=nb_mesure)
+    return render_template('about.html', nb_mesure=nb_mesure, here="about")
 
 
 
@@ -306,7 +310,17 @@ def archives(year="*", month="*", day="*", hour="*"):
     plot = gen_from_db(query, freq, request.user_agent.platform)
 
     return render_template('archives.html', plot=plot, year=year, month=month,
-                           day=day, hour=hour)
+                           day=day, hour=hour, here="archives")
+
+@app.route('/photo')
+def photo():
+    images = os.listdir('photos')
+    images.sort()
+    return render_template('photo.html', photos=images)
+
+@app.route('/static_image/<image>')
+def static_image(image=None):
+    return send_file("photos/" + image, mimetype='image/gif')
 
 
 

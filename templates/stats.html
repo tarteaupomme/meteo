@@ -3,20 +3,23 @@
 {% block body %}
     <div id='graphs'>
         <div id='graph_data'>
-            <h2 id='subtitle_data'>Température annuelles</h2>
-           <p id='data'><br/>Température minimale: {{min_temp[6]}} °C (atteinte le <a href='{{url_for('archives', year=min_temp[0], month=min_temp[1], day=min_temp[2])}}'>{{min_temp[2]}}/{{min_temp[1]}}/{{min_temp[0]}} à {{min_temp[3]}}:{{min_temp[4]}}:{{min_temp[5]}}</a>)</p>
-            <p id='data'><br/>Température maximale: {{max_temp[6]}} °C (atteinte le <a href='{{url_for('archives', year=max_temp[0], month=max_temp[1], day=max_temp[2])}}'>{{max_temp[2]}}/{{max_temp[1]}}/{{max_temp[0]}} à {{max_temp[3]}}:{{max_temp[4]}}:{{max_temp[5]}}</a>)</p>
-
+            <h2 id='subtitle'>Température annuelles</h2>
+            <div id="text_data">
+              <p id='data'><br/>Température minimale: {{min_temp[6]}} °C (atteinte le <a href={{url_for('archives', year=min_temp[0], month=min_temp[1], day=min_temp[2])}}>{{min_temp[2]}}/{{min_temp[1]}}/{{min_temp[0]}} à {{min_temp[3]}}:{{min_temp[4]}}:{{min_temp[5]}}</a>)</p>
+              <p id='data'><br/>Température maximale: {{max_temp[6]}} °C (atteinte le <a href={{url_for('archives', year=max_temp[0], month=max_temp[1], day=max_temp[2])}}>{{max_temp[2]}}/{{max_temp[1]}}/{{max_temp[0]}} à {{max_temp[3]}}:{{max_temp[4]}}:{{max_temp[5]}}</a>)</p>
+            </div>
             <embed type="image/svg+xml" src={{temp|safe}} style='max-width:1000px'/>
         </div>
         <div id='graph_data'>
-            <h2 id='subtitle_data'>Pression annuelles</h2>
-            <p id='data'><br/>Pression atmosphérique minimale: {{(min_pressure[6] / 100).__round__(2)}} hPa (atteinte le  <a href='{{url_for('archives', year=min_pressure[0], month=min_pressure[1], day=min_pressure[2])}}'>{{min_pressure[2]}}/{{min_pressure[1]}}/{{min_pressure[0]}} à {{min_pressure[3]}}:{{min_pressure[4]}}:{{min_pressure[5]}})</a></p>
-            <p id='data'><br/>Pression atmosphérique maximale: {{(max_pressure[6] / 100).__round__(2)}} hPa (atteinte le <a href='{{url_for('archives', year=max_pressure[0], month=max_pressure[1], day=max_pressure[2])}}'>{{max_pressure[2]}}/{{max_pressure[1]}}/{{max_pressure[0]}} à {{max_pressure[3]}}:{{max_pressure[4]}}:{{max_pressure[5]}})</a></p>
+            <h2 id='subtitle'>Pression annuelles</h2>
+            <div id="text_data">
+              <p id='data'><br/>Pression atmosphérique minimale: {{(min_pressure[6] / 100).__round__(2)}} hPa (atteinte le  <a href={{url_for('archives', year=min_pressure[0], month=min_pressure[1], day=min_pressure[2])}}>{{min_pressure[2]}}/{{min_pressure[1]}}/{{min_pressure[0]}} à {{min_pressure[3]}}:{{min_pressure[4]}}:{{min_pressure[5]}})</a></p>
+              <p id='data'><br/>Pression atmosphérique maximale: {{(max_pressure[6] / 100).__round__(2)}} hPa (atteinte le <a href={{url_for('archives', year=max_pressure[0], month=max_pressure[1], day=max_pressure[2])}}>{{max_pressure[2]}}/{{max_pressure[1]}}/{{max_pressure[0]}} à {{max_pressure[3]}}:{{max_pressure[4]}}:{{max_pressure[5]}})</a></p>
+            </div>
             <embed type="image/svg+xml" src={{pres|safe}} style='max-width:1000px'/>
         </div>
         <div id='graph_data'>
-            <h2 id='subtitle_data'>Températures par mois</h2>
+            <h2 id='subtitle'>Températures par mois</h2>
             <embed type="image/svg+xml" src={{month_stats|safe}} style='max-width:1000px' />
         </div>
     </div>
