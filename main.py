@@ -316,7 +316,7 @@ def archives(year="*", month="*", day="*", hour="*"):
 def photo():
     images = os.listdir('photos')
     images.sort()
-    return render_template('photo.html', photos=images)
+    return render_template('photo.html', photos=images, here="photo")
 
 @app.route('/static_image/<image>')
 def static_image(image=None):
