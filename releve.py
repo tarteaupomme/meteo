@@ -39,6 +39,7 @@ def db():
                          now.year, now.month, now.day, now.hour, now.minute,
                          now.second) in os.listdir('photos'):  # erreur
             print("ERROR: retrying...")
+            time.sleep(0.25)
             continue  # on reessaye jusqu'a ce que ca marche
         else:
             print("   Image correctly saved")

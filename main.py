@@ -4,6 +4,7 @@ import datetime
 import sqlite3
 import re
 import os
+import subprocess
 
 db_path = 'meteo.db'
 
@@ -17,7 +18,7 @@ db = sqlite3.connect(db_path)
 cur = db.cursor()
 
 
-#######################------graphs-functions-------------#####################
+# #####################------graphs-functions-------------#####################
 
 
 def gen_from_db(restriction=',', freq=1, platform=None):
@@ -52,11 +53,10 @@ def gen_from_db(restriction=',', freq=1, platform=None):
         plot.width = 1150
         plot.height = 800
 
-    plot.x_labels = [i[0] for i in data if i[0].hour == 0 and 
+    plot.x_labels = [i[0] for i in data if i[0].hour == 0 and
                      i[0].minute < 10]
-    plot.x_labels = [datetime.datetime(i.year, i.month, i.day, 0, 0, 0) 
+    plot.x_labels = [datetime.datetime(i.year, i.month, i.day, 0, 0, 0)
                      for i in plot.x_labels]
-
 
     data2 = []
 
@@ -70,42 +70,43 @@ def gen_from_db(restriction=',', freq=1, platform=None):
 def extrem():
     db = sqlite3.connect(db_path)
     cur = db.cursor()
-    cur.execute(
-    'SELECT year, month, day, hour, minute, second, max(temp) FROM meteo')
+    cur.execute("""SELECT year, month, day, hour, minute, second, max(temp)
+                   FROM meteo""")
     data_temp_max = cur.fetchone()
 
-    cur.execute(
-    'SELECT year, month, day, hour, minute, second, min(temp) FROM meteo')
+    cur.execute("""SELECT year, month, day, hour, minute, second, min(temp)
+                   FROM meteo""")
     data_temp_min = cur.fetchone()
 
-    cur.execute(
-    'SELECT year, month, day, hour, minute, second, max(pressure) FROM meteo')
+    cur.execute("""SELECT year, month, day, hour, minute, second,
+                   max(pressure) FROM meteo""")
     data_pressure_max = cur.fetchone()
 
-    cur.execute(
-    'SELECT year, month, day, hour, minute, second, min(pressure) FROM meteo')
+    cur.execute("""SELECT year, month, day, hour, minute, second, min(pressure)
+                FROM meteo""")
     data_pressure_min = cur.fetchone()
 
     return (data_temp_max, data_temp_min, data_pressure_max, data_pressure_min)
 
 
 def annuel_stats():
-    """renvoie des graph avec la temperature et de la pression a 8h 
+    """renvoie des graph avec la temperature et de la pression a 8h
     chaque jour de l'annee"""
     today = datetime.datetime.now()
     db = sqlite3.connect(db_path)
     cur = db.cursor()
     cur.execute(
-    """SELECT year, month, day, temp FROM meteo WHERE hour=8 AND minute < 10
-    AND (year=? OR (year=? and month>=? and day>=?))""",
-    (today.year, today.year - 1, today.month, today.day))
+                """SELECT year, month, day, temp FROM meteo WHERE hour=8 AND
+                minute < 10 AND (year=? OR (year=? and month>=? and day>=?))
+                """,
+               (today.year, today.year - 1, today.month, today.day))
 
     data_temp_matin = [(datetime.datetime(*i[:3]), i[3])
-                        for i in cur.fetchall()]
+                       for i in cur.fetchall()]
     cur.execute(
-    """SELECT year, month, day, pressure FROM meteo WHERE hour==8
-    AND minute < 10 AND (year==? OR (year==? and month>=?
-    and day>=?))""", (today.year, today.year - 1, today.month, today.day))
+        """SELECT year, month, day, pressure FROM meteo WHERE hour==8
+        AND minute < 10 AND (year==? OR (year==? and month>=?
+        and day>=?))""", (today.year, today.year - 1, today.month, today.day))
 
     data_pres_matin = [(datetime.datetime(*i[:3]), i[3] / 100)
                        for i in cur.fetchall()]
@@ -131,15 +132,16 @@ def annuel_stats():
     cur.execute("""SELECT year, month, day, temp FROM meteo WHERE hour==19 AND
      minute < 10 AND (year==? OR (year==? and month>=?
      and day>=?))""", (today.year, today.year - 1, today.month,
-                             today.day))
+                       today.day))
 
-    data_temp_soir = [(datetime.datetime(*i[:3]), i[3]) for i in cur.fetchall()]
+    data_temp_soir = [(datetime.datetime(*i[:3]), i[3]) for i in
+                      cur.fetchall()]
     cur.execute("""SELECT year, month, day, pressure FROM meteo WHERE hour==19
     AND minute < 10 AND (year==? OR (year==? and month>=?
     and day>=?))""", (today.year, today.year - 1, today.month, today.day))
 
     data_pres_soir = [(datetime.datetime(*i[:3]), i[3] / 100)
-                       for i in cur.fetchall()]
+                      for i in cur.fetchall()]
 
     temp.add('19H', data_temp_soir, show_dots=dot)
     pres.add('19H', data_pres_soir, show_dots=dot)
@@ -148,7 +150,6 @@ def annuel_stats():
     pres.range = [945, 1080]
 
     return temp.render_data_uri(), pres.render_data_uri()
-
 
 
 def month_stats_temp():
@@ -207,17 +208,23 @@ def month_stats_temp():
 
 
 def format_query(query, var):
-	if query == "*":
-		return 1
-	elif re.search(r'([0-9]+)-([0-9]+)', query) is not None:
-		d = tuple(re.findall(r'([0-9]+)-([0-9]+)', query)[0])
-		return var + " BETWEEN {} AND {}".format(*d)
-	else:
-		return var + " == " + query
+    if query == "*":
+        return 1
+    elif re.search(r'([0-9]+)-([0-9]+)', query) is not None:  # fourchette
+        d = tuple(re.findall(r'([0-9]+)-([0-9]+)', query)[0])
+        return var + " BETWEEN {} AND {}".format(*d)
+    elif re.search(r'([0-9]+)-', query) is not None:  # juste debut
+        d = re.findall(r'([0-9]+)-', query)[0]
+        return var + " >= {}".format(d)
+    elif re.search(r'-([0-9]+)', query) is not None:  # juste fin
+        d = re.findall(r'-([0-9]+)', query)[0]
+        return var + " <= {}".format(d)
+    else:  # valeur exacte
+        return var + " == " + query
 
 
+# ####################-----------views-----------##############################
 
-#####################-----------views-----------###############################
 
 app = Flask(__name__)
 
@@ -229,14 +236,13 @@ def home():
         today = datetime.datetime.now() - datetime.timedelta(1)
     else:
         today = datetime.datetime.now() - datetime.timedelta(2)
-    
-    plot = gen_from_db("""WHERE (year * 100000000 + month *1000000 + day * 10000 
+
+    plot = gen_from_db("""WHERE (year * 100000000 + month *1000000 + day * 10000
                        + hour * 100 + minute) >= {}
-                      """
-					  .format(today.year * 100000000 + today.month * 1000000 +
-					          today.day * 10000 + today.hour * 100 + 
-                              today.minute),
-                       1, platform)
+                      """.format(today.year * 100000000 +
+                                 today.month * 1000000 +
+                                 today.day * 10000 + today.hour * 100 +
+                                 today.minute), 1, platform)
 
     extremum = extrem()
 
@@ -257,6 +263,7 @@ def stats():
                            max_temp=extremum[0], min_temp=extremum[1],
                            max_pressure=extremum[2], min_pressure=extremum[3],
                            month_stats=month_stats, here="stats")
+
 
 @app.route('/simple_data')
 def simple_data():
@@ -283,8 +290,6 @@ def about():
     return render_template('about.html', nb_mesure=nb_mesure, here="about")
 
 
-
-
 @app.route('/archives/')
 @app.route('/archives/<year>/')
 @app.route('/archives/<year>/<month>/')
@@ -292,38 +297,50 @@ def about():
 @app.route('/archives/<year>/<month>/<day>/<hour>')
 def archives(year="*", month="*", day="*", hour="*"):
     """renvoie un graph de la periode voulue"""
-    
+
     dyear = format_query(year, "year")
     dmonth = format_query(month, "month")
     dday = format_query(day, "day")
     dhour = format_query(hour, "hour")
-    
-    try:
-        freq = int(request.args.get('freq', ''))
-    except:
-        freq = 1
-    
-    query = "WHERE {} AND {} AND {} AND {}".format(dyear, dmonth,dday,
-             dhour)
 
+    try:  # afin de diminuer le volume des donnees a envoyer
+        freq = int(request.args.get('freq', ''))
+    except:  # si non precise, on envoie toutes les donnees
+        freq = 1
+
+    query = "WHERE {} AND {} AND {} AND {}".format(dyear, dmonth, dday,
+                                                   dhour)
 
     plot = gen_from_db(query, freq, request.user_agent.platform)
 
     return render_template('archives.html', plot=plot, year=year, month=month,
                            day=day, hour=hour, here="archives")
 
+
 @app.route('/photo')
 def photo():
+    try:
+        nb_image = int(request.args.get('nb_image', ''))
+    except:
+        nb_image = -1
     images = os.listdir('photos')
-    images.sort()
-    return render_template('photo.html', photos=images, here="photo")
+    images.sort(reverse=True)
+    return render_template('photo.html', photos=images[:nb_image],
+                           here="photo")
+
 
 @app.route('/static_image/<image>')
 def static_image(image=None):
     return send_file("photos/" + image, mimetype='image/gif')
 
 
+@app.route('get_image')
+def get_image():
+    """renvoie l'image du ciel actuelle"""
+    subprocess.call(["fswebcam", "-q", "actual.jpg", "-F 20", "-S 19"],
+                    stdout=subprocess.PIPE)
+    return send_file('actual.jpg', mimetype='image/gif')
+
 
 if __name__ == '__main__':
     app.run('192.168.1.14', 80, debug=True, threaded=True)
-
