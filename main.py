@@ -322,7 +322,7 @@ def photo():
     try:
         nb_image = int(request.args.get('nb_image', ''))
     except:
-        nb_image = -1
+        nb_image = 6 * 12
     images = os.listdir('photos')
     images.sort(reverse=True)
     return render_template('photo.html', photos=images[:nb_image],
