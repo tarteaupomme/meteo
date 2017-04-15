@@ -337,8 +337,9 @@ def static_image(image=None):
 @app.route('/get_image')
 def get_image():
     """renvoie l'image du ciel actuelle"""
-    subprocess.call(["fswebcam", "-q", "actual.jpg", "-F 20", "-S 19"],
-                    stdout=subprocess.PIPE)
+    subprocess.call(['rm', 'actual.jpg'])
+    while 'actual.jpg' not in os.listdir():
+        subprocess.call(["fswebcam", "-q", "actual.jpg", "-F 20", "-S 19"])
     return send_file('actual.jpg', mimetype='image/gif')
 
 
