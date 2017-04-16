@@ -329,6 +329,11 @@ def photo():
                            here="photo")
 
 
+@app.route('/photo/<image>')
+def single_photo(image):
+    return render_template('single_image.html', image_name=image)
+
+
 @app.route('/static_image/<image>')
 def static_image(image=None):
     return send_file("photos/" + image, mimetype='image/gif')
