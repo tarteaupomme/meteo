@@ -30,7 +30,7 @@ print()
 
 
 cur.execute("SELECT min(pressure), avg(pressure), max(pressure) from meteo")
-stat = map(lambda x: x/100,cur.fetchone())
+stat = map(lambda x: x/100, cur.fetchone())
 
 print("""Pression:
 -minimale:                {} hPa

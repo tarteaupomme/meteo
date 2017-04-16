@@ -1,4 +1,5 @@
-from flask import Flask, render_template, url_for, request, send_file
+from flask import Flask, render_template, url_for, request, send_file, \
+                  make_response
 import pygal
 import datetime
 import sqlite3
@@ -39,9 +40,11 @@ def gen_from_db(restriction=',', freq=1, platform=None):
 
     datafetch = cur.fetchall()
 
-    data = [(datetime.datetime(*i[0:6]), i[6]) for i in datafetch]
+    datafetch2 = [(datetime.datetime(*i[0:6]), i[6]) for i in datafetch]
 
-    plot.add('température', data[::freq], show_dots=dot, secondary=False)
+    data = [(datetime.datetime(*i[0:6]), i[6]) for i in datafetch[::freq]]
+
+    plot.add('température', data, show_dots=dot, secondary=False)
 
     plot.max_scale = temp_scale
     plot.secondary_range = [965, 1045]
@@ -53,18 +56,33 @@ def gen_from_db(restriction=',', freq=1, platform=None):
         plot.width = 1150
         plot.height = 800
 
-    plot.x_labels = [i[0] for i in data if i[0].hour == 0 and
+    plot.x_labels = [i[0] for i in datafetch2 if i[0].hour == 0 and
                      i[0].minute < 10]
     plot.x_labels = [datetime.datetime(i.year, i.month, i.day, 0, 0, 0)
                      for i in plot.x_labels]
 
     data2 = []
 
-    data2 = [(datetime.datetime(*i[0:6]), i[7] / 100) for i in datafetch]
+    data2 = [(datetime.datetime(*i[0:6]), i[7] / 100) for i in
+             datafetch[::freq]]
 
-    plot.add('pression', data2[::freq], show_dots=dot, secondary=True)
+    plot.add('pression', data2, show_dots=dot, secondary=True)
 
-    return plot.render_data_uri()
+    return data, data2, plot.render_data_uri()
+
+
+def csv_from_db(restriction, freq=1):
+    db = sqlite3.connect(db_path)
+    cur = db.cursor()
+    cur.execute('SELECT * FROM meteo ' + restriction)
+
+    datafetch = cur.fetchall()
+
+    data = [str(i[6]) + "," + str((i[7] / 100).__round__(2)) + "," +
+            datetime.datetime(*i[0:6]).strftime("%y/%m/%d %H:%M:%S")
+            for i in datafetch[::freq]]
+
+    return """temperature, pression, date\n""" + "\n".join(data)
 
 
 def extrem():
@@ -223,6 +241,30 @@ def format_query(query, var):
         return var + " == " + query
 
 
+def get_latest_data(nb):
+    """nb: nombre de donnees a retourner (-1 = toutes)"""
+    db = sqlite3.connect(db_path)
+    cur = db.cursor()
+
+    cur.execute("""SELECT * FROM meteo ORDER BY year DESC, month DESC,
+                   day DESC, hour DESC, minute DESC, second DESC""")
+
+    if nb != -1:
+        data = []
+        for i in range(nb):
+            d = cur.fetchone()
+            data.append((d[6], (d[7] / 100).__round__(2),
+                         "{:02d}/{:02d}/{:02d} {:02d}:{:02d}:{:02d}"
+                         .format(*d[0:6])))
+
+    elif nb == -1:
+        data = [(d[6], (d[7] / 100).__round__(2),
+                 "{:02d}/{:02d}/{:02d} {:02d}:{:02d}:{:02d}".format(*d[0:6]))
+                for d in cur.fetchall()]
+
+    return data
+
+
 # ####################-----------views-----------##############################
 
 
@@ -232,7 +274,8 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     platform = request.user_agent.platform
-    if platform in ('android', 'iphone'):
+    mob = platform in ('android', 'iphone')
+    if mob:
         today = datetime.datetime.now() - datetime.timedelta(1)
     else:
         today = datetime.datetime.now() - datetime.timedelta(2)
@@ -242,14 +285,10 @@ def home():
                       """.format(today.year * 100000000 +
                                  today.month * 1000000 +
                                  today.day * 10000 + today.hour * 100 +
-                                 today.minute), 1, platform)
+                                 today.minute), 1, platform)[2]
 
-    extremum = extrem()
-
-    return render_template('home.html', plot=plot,
-                           max_temp=extremum[0],
-                           min_temp=extremum[1], max_pressure=extremum[2],
-                           min_pressure=extremum[3], here="home")
+    return render_template('home.html', plot=plot, here="home",
+                           data=get_latest_data(3), mob=mob)
 
 
 @app.route('/stats')
@@ -311,10 +350,48 @@ def archives(year="*", month="*", day="*", hour="*"):
     query = "WHERE {} AND {} AND {} AND {}".format(dyear, dmonth, dday,
                                                    dhour)
 
-    plot = gen_from_db(query, freq, request.user_agent.platform)
+    data = gen_from_db(query, freq, request.user_agent.platform)
+
+    plot = data[2]
+
+    d = []
+    for n, j in enumerate(data[0]):
+        d.append((j[1], data[1][n][1], j[0].strftime("%y/%m/%d %H:%M:%S")))
 
     return render_template('archives.html', plot=plot, year=year, month=month,
-                           day=day, hour=hour, here="archives")
+                           day=day, hour=hour, here="archives", data=d,
+                           path="{}/{}/{}/{}".format(year, month, day, hour),
+                           freq=freq)
+
+
+@app.route('/csv/')
+@app.route('/csv/<year>/')
+@app.route('/csv/<year>/<month>/')
+@app.route('/csv/<year>/<month>/<day>/')
+@app.route('/csv/<year>/<month>/<day>/<hour>')
+def csv(year="*", month="*", day="*", hour="*"):
+    """renvoie un graph de la periode voulue"""
+
+    dyear = format_query(year, "year")
+    dmonth = format_query(month, "month")
+    dday = format_query(day, "day")
+    dhour = format_query(hour, "hour")
+
+    try:  # afin de diminuer le volume des donnees a envoyer
+        freq = int(request.args.get('freq', ''))
+    except:  # si non precise, on envoie toutes les donnees
+        freq = 1
+
+    query = "WHERE {} AND {} AND {} AND {}".format(dyear, dmonth, dday,
+                                                   dhour)
+
+    data = csv_from_db(query, freq)
+
+    response = make_response(data)
+
+    response.headers["Content-type"] = "text/csv"
+
+    return response
 
 
 @app.route('/photo')
@@ -346,6 +423,20 @@ def get_image():
     while 'actual.jpg' not in os.listdir():
         subprocess.call(["fswebcam", "-q", "actual.jpg", "-F 20", "-S 19"])
     return send_file('actual.jpg', mimetype='image/gif')
+
+
+@app.route('/raw_data.csv')
+def raw_data():
+    try:
+        nb = int(request.args.get('nb_mesures', ''))
+    except:
+        nb = 6 * 24  # un jour
+    response = make_response("""temperature, pression, date\n""" +
+                             '\n'.join([','.join(list(map(str, l))) for l in
+                                        get_latest_data(nb)]))
+    response.headers["Content-type"] = "text/csv"
+
+    return response
 
 
 if __name__ == '__main__':

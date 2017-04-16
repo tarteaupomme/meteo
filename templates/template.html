@@ -15,26 +15,28 @@
     
 
     <link href={{ url_for('static', filename="style2.css") }} rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <script src={{ url_for('static', filename="imagesloaded.pkgd.min.js") }}></script>
   </head>
 
   <body>
     <div class="container">
-      <div class="navbar navbar-inverse">
-        <div class="navbar-header"><span class="navbar-brand">Météo</span></div>
-        <ul class="nav navbar-nav">
-          <li class={{ "active" if here=="home" else ""}}><a href={{ url_for('home') }}>Accueil</a></li>
-          <li class={{ "active" if here=="stats" else ""}}><a href={{ url_for('stats') }}>Statistiques annuels</a></li>
-          <li class={{ "active" if here=="archives" else ""}}><a href={{ url_for('archives', freq=10) }}>Archives</a></li>
-          <li class={{ "active" if here=="photo" else ""}}><a href={{ url_for('photo') }}>Photos</a></li>
-          <li class={{ "active" if here=="about" else ""}}><a href={{ url_for('about') }}>A propos</a></li>
-        </ul>
+      <div class="navbar navbar-inverse" role="navigation">
+        <div class="navbar-collapse">
+            <ul class="nav navbar-nav">
+              <li class="{{ "active navbar-left" if here=="home" else "navbar-left"}}"><a href={{ url_for('home') }}>Accueil</a></li>
+              <li class="{{ "active navbar-left" if here=="stats" else "navbar-left"}}"><a href={{ url_for('stats') }}>Statistiques annuels</a></li>
+              <li class="{{ "active navbar-left" if here=="archives" else "navbar-left"}}"><a href={{ url_for('archives', freq=100) }}>Archives</a></li>
+              <li class="{{ "active navbar-left" if here=="photo" else "navbar-left"}}"><a href={{ url_for('photo') }}>Photos</a></li>
+              <li class="{{ "active navbar-left" if here=="about" else  "navbar-left"}}"><a href={{ url_for('about') }}>A propos</a></li>
+              <li class="navbar-right"><a target="_blank" href="https://github.com/tarteaupomme/meteo">Code scource</a></li>
+            </ul>
+        </div>
       </div>
       {% block body %}{% endblock %}
     </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src={{ url_for('static', filename="imagesloaded.pkgd.min.js") }}></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
+    {% block scripts %}{% endblock %}
   </body>
 </html>
 

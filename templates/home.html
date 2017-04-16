@@ -1,8 +1,63 @@
 {% extends 'template.html' %}
-{% block titre %}<h1 id="titre">Accueil</h1>{% endblock %}
 {% block body %}
-    <h2 id='subtitle'>Mesures des dernières 48H</h2>
+
+<div class="row" style="width: 100%;">
+    <div id="actual_image" class="col-lg-5 col-sm-5 pull-left">
+        <button class="btn btn-info btn-lg" style="margin-left: auto; margin-right: auto; margin-bottom: 5px;" id="take_photo">Prendre une photo tout de suite</button>
+        <div class="thumbnail" id="actual_photo_box" style="display: none;">
+            <button id="close_photo" class="close"><span class="glyphicon glyphicon-remove"></span></button>
+            <img id="actual_photo"></img>
+            <h3 id="chargement">
+                <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Capture en cours...
+            </h3>
+        </div>
+    </div>
+    
+    <div class="col-lg-5 col-sm-5 pull-right">
+        <section class="table-responsive">
+            <table class="table table-bordered table-striped table-condensed table-hover">
+                <caption><h3 id="titre">Dernières mesures</h3></caption>
+                <thead>
+                    <tr>
+                        <td>Date</td>
+                        <td>Température (°C)</td>
+                        <td>Pression atmosphèrique (hPa)</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in data %}
+                        <tr>
+                            <td>{{ d[2] }}</td>
+                            <td>{{ d[0] }}</td>
+                            <td>{{ d[1] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+</div>
+    
+<div class="col-lg-5" style="width: 100%;">
+    <h2 id='subtitle'>Mesures des dernières {{"48H" if not mob else "24H" }}</h2>
     <div id='graphs'>
         <embed type="image/svg+xml" src={{plot|safe}} style='max-width:2000px;margin-left: auto;margin-right: auto;'/>
     </div>
+</div>
+{% endblock %}
+
+{%block scripts %}
+<script>
+    $('#take_photo').click( function (){
+        $("#actual_photo").attr('src', '/get_image?' + new Date().getTime());
+        $("#actual_photo_box").css('display', 'block');
+        $("#chargement").css('display', 'block');
+        $("#actual_photo").imagesLoaded(function() {
+            $("#chargement").css('display', 'none');
+        });
+    });
+    $("#close_photo").click(function() {
+        $("#actual_photo_box").css('display', 'none');
+    });
+</script>
 {% endblock %}

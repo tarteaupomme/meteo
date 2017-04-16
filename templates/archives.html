@@ -1,8 +1,72 @@
 {% extends 'template.html' %}
 {% block titre %}<h1 id="titre">Archives</h1>{% endblock %}
 {% block body %}    
-    <h2 id='subtitle'>Mesures du {{day}}/{{month}}/{{year}} à {{hour}}h</h2>
-    <div id='graphs'>
-        <embed type="image/svg+xml" src={{plot|safe}} style='max-width:2000px;margin-left: auto;margin-right: auto;'/>
-    </div>
+<h2 id='subtitle'>Mesures du {{day}}/{{month}}/{{year}} à {{hour}}h</h2>
+<div id='graphs'>
+    <embed type="image/svg+xml" src={{plot|safe}} style='max-width:2000px;margin-left: auto;margin-right: auto;'/>
+</div>
+
+<div class="row">
+    <a href="{{url_for('csv')}}{{path}}" download="mesures.csv">Télécharger au format CSV</a>
+    <button class="btn btn-info btn-lg pull-right" id="aff">Afficher le tableau</button>
+</div>
+
+<div class="row" id="table" style="display: none;">
+    <section class="table-responsive">
+        <table class="table table-bordered table-striped table-condensed table-hover">
+            <caption><h3 id="titre">Tableau des mesures</h3></caption>
+            <thead>
+                <tr>
+                    <td>Date</td>
+                    <td>Température (°C)</td>
+                    <td>Pression atmosphérique (hPa)</td>
+                </tr>
+            </thead>
+            <tbody id="table_data">
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+var aff=true;
+var first=true;
+$("#aff").on("click", function() {
+    if(aff){
+        aff = false;
+        if(first){
+            $.get("{{url_for('csv')}}{{path}}?freq={{freq}}", function(data) {
+                var t = "";
+                var rows = data.split('\n');
+                rows.shift()
+                rows.forEach( function(row) {
+                    row_ = row.split(',');
+
+                    t += "<tr>"
+                    
+                    t += "<td>" + row_[2] + "</td>"
+                    t += "<td>" + row_[0] + "</td>"
+                    t += "<td>" + row_[1] + "</td>"
+                    
+                    t += "</tr>"
+                });
+                $("#table_data").append(t);
+            });
+        }
+        first = false;
+        $("#table").css("display", "block");
+        $("#aff")[0].innerHTML = "Masquer le tableau";        
+    }
+    else{
+        aff=true;
+        $("#table").css("display", "none");
+        $("#aff")[0].innerHTML = "Afficher le tableau";
+    }
+});
+
+</script>
+
 {% endblock %}
